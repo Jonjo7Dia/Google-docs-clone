@@ -26,18 +26,31 @@ export default function TextEditor() {
   }, []);
 
   useEffect(() => {
-    if (socket == null || quill == null) return
+    if (socket == null || quill == null) return;
 
-    const handler = (delta, oldDelta, source) => {
-      if (source !== "user") return
-      socket.emit("send-changes", delta)
-    }
-    quill.on("text-change", handler)
+    const handler = (delta) => {
+     quill.updateContents(delta);
+    };
+    socket.on("receive-changes", handler);
 
     return () => {
-      quill.off("text-change", handler)
-    }
-  },[socket, quill]);
+      socket.off("receive-changes", handler);
+    };
+  }, [socket, quill]);
+
+  useEffect(() => {
+    if (socket == null || quill == null) return;
+
+    const handler = (delta, oldDelta, source) => {
+      if (source !== "user") return;
+      socket.emit("send-changes", delta);
+    };
+    quill.on("text-change", handler);
+
+    return () => {
+      quill.off("text-change", handler);
+    };
+  }, [socket, quill]);
 
   const wrapperRef = useCallback((wrapper) => {
     if (wrapper === null) return;
